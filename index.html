@@ -216,7 +216,11 @@ function renderGrid() {
   if (filters.country !== 'all')
     entries = entries.filter(p => p.country && p.country.includes(filters.country));
 
-  entries.sort((a,b) => a.name.localeCompare(b.name));
+  entries.sort((a,b) => {
+    const lastA = a.name.trim().split(' ').pop();
+    const lastB = b.name.trim().split(' ').pop();
+    return lastA.localeCompare(lastB);
+  });
 
   const total = Object.values(portfolios).length;
   meta.innerHTML = `Showing ${entries.length} of ${total} portfolio${total !== 1 ? 's' : ''}
