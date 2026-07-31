@@ -179,18 +179,40 @@ const CLIENT_PILL_CLASS = {
 // ── OG IMAGE VIA JSONLINK ─────────────────────────────────
 async function fetchOgImage(url) {
   if (ogCache[url] !== undefined) return ogCache[url];
-  try {
-    const proxy = 'https://corsproxy.io/?';
-    const res = await fetch(`${proxy}${encodeURIComponent('https://jsonlink.io/api/extract?url=' + encodeURIComponent(url))}`);
-    if (!res.ok) throw new Error('api error');
-    const data = await res.json();
-    const img = (data.images && data.images.length > 0) ? data.images[0] : null;
-    ogCache[url] = img;
-    return img;
-  } catch {
-    ogCache[url] = null;
-    return null;
+
+  const proxies = [
+    u => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
+    u => `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(u)}`,
+    u => `https://corsfix.com/${encodeURIComponent(u)}`,
+  ];
+
+  for (const buildUrl of proxies) {
+    try {
+      const res = await fetch(buildUrl(url), { signal: AbortSignal.timeout(6000) });
+      if (!res.ok) continue;
+
+      let pageHtml;
+      const ct = res.headers.get('content-type') || '';
+      if (ct.includes('application/json')) {
+        const data = await res.json();
+        pageHtml = data.contents || '';
+      } else {
+        pageHtml = await res.text();
+      }
+
+      const match =
+        pageHtml.match(/<meta[^>]+property=["']og:image["'][^>]+content=["'](https?:[^"']+)["']/) ||
+        pageHtml.match(/<meta[^>]+content=["'](https?:[^"']+)["'][^>]+property=["']og:image["']/);
+
+      if (match && match[1]) {
+        ogCache[url] = match[1];
+        return match[1];
+      }
+    } catch { continue; }
   }
+
+  ogCache[url] = null;
+  return null;
 }
 
 // ── LOAD DATA ─────────────────────────────────────────────
