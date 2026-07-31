@@ -175,27 +175,10 @@ const CLIENT_PILL_CLASS = {
 };
 
 // ── OG IMAGE VIA JSONLINK ─────────────────────────────────
-const ogCache = {};
-
-async function fetchOgImage(url) {
-  if (ogCache[url] !== undefined) {
-    console.log('[gallery] cache hit:', url, '->', ogCache[url]);
-    return ogCache[url];
-  }
-  try {
-    const apiUrl = 'https://eccul2test.tekii.org/ogimage?url=' + encodeURIComponent(url);
-    console.log('[gallery] fetching:', apiUrl);
-    const res = await fetch(apiUrl, { signal: AbortSignal.timeout(8000) });
-    console.log('[gallery] response status:', res.status);
-    const data = await res.json();
-    console.log('[gallery] response data:', JSON.stringify(data));
-    ogCache[url] = data.image || null;
-    return ogCache[url];
-  } catch(e) {
-    console.log('[gallery] ERROR for', url, ':', e.message);
-    ogCache[url] = null;
-    return null;
-  }
+function getThumbUrl(url) {
+  // /ogimg proxies the Canva page server-side and streams the cover image bytes
+  // Works as a direct <img src> — no fetch, no CORS, no expiry issues
+  return 'https://eccul2test.tekii.org/ogimg?url=' + encodeURIComponent(url);
 }
 
 // ── LOAD DATA ─────────────────────────────────────────────
@@ -279,25 +262,18 @@ function renderGrid() {
     grid.appendChild(card);
 
     const previewEl = card.querySelector('.preview');
-    fetchOgImage(p.url).then(imgUrl => {
-      if (imgUrl) {
-        const img = document.createElement('img');
-        img.src = imgUrl;
-        img.alt = p.name + ' portfolio preview';
-        img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
-        img.onerror = function() {
-          previewEl.innerHTML = '<div class="preview-fallback"><div class="pf-initials">'
-            + initials + '</div><div class="pf-label">Portfolio</div></div>';
-        };
-        const overlay = document.createElement('div');
-        overlay.className = 'preview-overlay';
-        previewEl.appendChild(img);
-        previewEl.appendChild(overlay);
-      } else {
-        previewEl.innerHTML = '<div class="preview-fallback"><div class="pf-initials">'
-          + initials + '</div><div class="pf-label">Portfolio</div></div>';
-      }
-    });
+    const img = document.createElement('img');
+    img.src = getThumbUrl(p.url);
+    img.alt = p.name + ' portfolio preview';
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+    img.onerror = function() {
+      previewEl.innerHTML = '<div class="preview-fallback"><div class="pf-initials">'
+        + initials + '</div><div class="pf-label">Portfolio</div></div>';
+    };
+    const overlay = document.createElement('div');
+    overlay.className = 'preview-overlay';
+    previewEl.appendChild(img);
+    previewEl.appendChild(overlay);
   });
 }
 
