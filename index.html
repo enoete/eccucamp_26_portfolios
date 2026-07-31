@@ -184,8 +184,6 @@ async function fetchOgImage(url) {
   let resolvedUrl = url;
   if (url.includes('canva.link')) {
     try {
-      // allorigins will follow redirects server-side — pass it the shortlink
-      // and read the final URL from the returned HTML's canonical tag
       const r = await fetch(
         `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
         { signal: AbortSignal.timeout(6000) }
@@ -198,7 +196,6 @@ async function fetchOgImage(url) {
     } catch { /* use original url */ }
   }
 
-  // Now fetch the resolved Canva page and extract og:image
   try {
     const res = await fetch(
       `https://api.allorigins.win/get?url=${encodeURIComponent(resolvedUrl)}`,
@@ -208,14 +205,35 @@ async function fetchOgImage(url) {
     const data = await res.json();
     const pageHtml = data.contents || '';
 
-    const match =
-      pageHtml.match(/<meta[^>]+property=["']og:image["'][^>]+content=["'](https?:[^"']+)["']/) ||
-      pageHtml.match(/<meta[^>]+content=["'](https?:[^"']+)["'][^>]+property=["']og:image["']/);
+    // Debug — log first 2000 chars of returned HTML to console
+    console.log('[portfolio] allorigins returned for', resolvedUrl);
+    console.log('[portfolio] HTML snippet:', pageHtml.slice(0, 2000));
 
-    const img = (match && match[1]) ? match[1] : null;
-    ogCache[url] = img;
-    return img;
-  } catch {
+    // Try multiple og:image patterns — Canva may use different formats
+    const patterns = [
+      /<meta[^>]+property=["']og:image["'][^>]+content=["'](https?:[^"']+)["']/i,
+      /<meta[^>]+content=["'](https?:[^"']+)["'][^>]+property=["']og:image["']/i,
+      /<meta[^>]+name=["']og:image["'][^>]+content=["'](https?:[^"']+)["']/i,
+      /<meta[^>]+content=["'](https?:[^"']+)["'][^>]+name=["']og:image["']/i,
+      /og:image.*?content=["'](https?:[^"']+)["']/i,
+      /"og:image"[^}]*"url":"(https?:[^"]+)"/i,
+      /"og:image","content":"(https?:[^"]+)"/i,
+    ];
+
+    for (const p of patterns) {
+      const match = pageHtml.match(p);
+      if (match && match[1]) {
+        console.log('[portfolio] og:image found:', match[1]);
+        ogCache[url] = match[1];
+        return match[1];
+      }
+    }
+
+    console.log('[portfolio] No og:image found in returned HTML');
+    ogCache[url] = null;
+    return null;
+  } catch(e) {
+    console.log('[portfolio] Error:', e.message);
     ogCache[url] = null;
     return null;
   }
