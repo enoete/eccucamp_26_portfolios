@@ -265,12 +265,17 @@ function renderGrid() {
     // thum.io — direct img src, no fetch needed
     const previewEl = card.querySelector('.preview');
     const thumbUrl = getThumbnailUrl(p.url);
-    previewEl.innerHTML = `
-      <img src="${thumbUrl}"
-        alt="${p.name} portfolio preview"
-        style="width:100%;height:100%;object-fit:cover;display:block;"
-        onerror="this.parentElement.innerHTML='<div class=\'preview-fallback\'><div class=\'pf-initials\'>${initials}</div><div class=\'pf-label\'>Portfolio</div></div>'"/>
-      <div class="preview-overlay"></div>`;
+    const img = document.createElement('img');
+    img.src = thumbUrl;
+    img.alt = p.name + ' portfolio preview';
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+    img.onerror = function() {
+      previewEl.innerHTML = '<div class="preview-fallback"><div class="pf-initials">' + initials + '</div><div class="pf-label">Portfolio</div></div>';
+    };
+    const overlay = document.createElement('div');
+    overlay.className = 'preview-overlay';
+    previewEl.appendChild(img);
+    previewEl.appendChild(overlay);
   });
 }
 
