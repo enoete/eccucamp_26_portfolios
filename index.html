@@ -276,10 +276,9 @@ function renderGrid() {
 function buildEmbedUrl(url) {
   if (!url) return null;
   try {
-    // Standard format: https://www.canva.com/design/DAxxxxxx/slug/view
-    const match = url.match(/canva\.com\/design\/([A-Za-z0-9_-]+)/);
-    if (match) {
-      return `https://www.canva.com/design/${match[1]}/view?embed`;
+    // Use the submitted URL directly — must be a canva.com/design/.../view URL
+    if (/canva\.com\/design\/[A-Za-z0-9_-]+\/.+\/view/.test(url)) {
+      return url;
     }
     return null;
   } catch { return null; }
