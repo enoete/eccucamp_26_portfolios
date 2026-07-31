@@ -263,16 +263,10 @@ function renderGrid() {
 
     const previewEl = card.querySelector('.preview');
     const img = document.createElement('img');
-    const thumbSrc = getThumbUrl(p.url);
-    console.log('[gallery] img.src set to:', thumbSrc);
-    img.src = thumbSrc;
+    img.src = getThumbUrl(p.url);
     img.alt = p.name + ' portfolio preview';
     img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
-    img.onload = function() {
-      console.log('[gallery] image LOADED ok:', thumbSrc);
-    };
-    img.onerror = function(e) {
-      console.log('[gallery] image FAILED:', thumbSrc, e);
+    img.onerror = function() {
       previewEl.innerHTML = '<div class="preview-fallback"><div class="pf-initials">'
         + initials + '</div><div class="pf-label">Portfolio</div></div>';
     };
