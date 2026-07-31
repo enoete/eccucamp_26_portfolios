@@ -169,11 +169,28 @@ const BIN_URL    = `https://api.jsonbin.io/v3/b/${JSONBIN_ID}/latest`;
 
 let portfolios = {};
 let filters = { client: 'all', country: 'all' };
+const ogCache = {};
 
 const CLIENT_PILL_CLASS = {
   eccb: 'cp-eccb', scaspa: 'cp-scaspa', cub: 'cp-cub',
   ird: 'cp-ird', outsource: 'cp-outsource', irdanguilla: 'cp-irdanguilla'
 };
+
+// ── OG IMAGE VIA JSONLINK ─────────────────────────────────
+async function fetchOgImage(url) {
+  if (ogCache[url] !== undefined) return ogCache[url];
+  try {
+    const res = await fetch(`https://jsonlink.io/api/extract?url=${encodeURIComponent(url)}`);
+    if (!res.ok) throw new Error('api error');
+    const data = await res.json();
+    const img = (data.images && data.images.length > 0) ? data.images[0] : null;
+    ogCache[url] = img;
+    return img;
+  } catch {
+    ogCache[url] = null;
+    return null;
+  }
+}
 
 // ── LOAD DATA ─────────────────────────────────────────────
 async function loadData() {
@@ -208,13 +225,11 @@ function renderGrid() {
 
   let entries = Object.values(portfolios);
 
-  // Filter
   if (filters.client !== 'all')
     entries = entries.filter(p => p.client === filters.client);
   if (filters.country !== 'all')
     entries = entries.filter(p => p.country && p.country.includes(filters.country));
 
-  // Sort alphabetically
   entries.sort((a,b) => a.name.localeCompare(b.name));
 
   const total = Object.values(portfolios).length;
@@ -239,23 +254,14 @@ function renderGrid() {
     const initials = p.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
     const pillClass = CLIENT_PILL_CLASS[p.client] || 'cp-eccb';
 
-    // Build Canva embed URL
-    // Convert standard canva.com/design/ID/slug/view → embed format
-    const embedUrl = buildEmbedUrl(p.url);
-
     const card = document.createElement('div');
     card.className = 'card';
     card.innerHTML = `
-      <div class="preview">
-        ${embedUrl
-          ? `<iframe src="${embedUrl}" loading="lazy" scrolling="no"
-               allow="fullscreen" title="${p.name}'s portfolio"></iframe>
-             <div class="preview-overlay"></div>`
-          : `<div class="preview-fallback">
-               <div class="pf-initials">${initials}</div>
-               <div class="pf-label">Portfolio</div>
-             </div>`
-        }
+      <div class="preview preview-loading">
+        <div class="preview-fallback">
+          <div class="pf-initials">${initials}</div>
+          <div class="pf-label">Loading…</div>
+        </div>
       </div>
       <div class="card-body">
         <div class="card-name">${p.name}</div>
@@ -263,25 +269,31 @@ function renderGrid() {
         <div class="card-pills">
           <span class="cpill ${pillClass}">${p.clientLabel}</span>
         </div>
-        <a class="view-btn" href="${p.url}" target="_blank">
-          View Portfolio ↗
-        </a>
+        <a class="view-btn" href="${p.url}" target="_blank">View Portfolio ↗</a>
       </div>
     `;
     grid.appendChild(card);
-  });
-}
 
-// ── BUILD CANVA EMBED URL ─────────────────────────────────
-function buildEmbedUrl(url) {
-  if (!url) return null;
-  try {
-    // Use the submitted URL directly — must be a canva.com/design/.../view URL
-    if (/canva\.com\/design\/[A-Za-z0-9_-]+\/.+\/view/.test(url)) {
-      return url;
-    }
-    return null;
-  } catch { return null; }
+    // Fetch og:image and update the preview asynchronously
+    const previewEl = card.querySelector('.preview');
+    fetchOgImage(p.url).then(imgUrl => {
+      if (imgUrl) {
+        previewEl.classList.remove('preview-loading');
+        previewEl.innerHTML = `
+          <img src="${imgUrl}"
+            alt="${p.name} portfolio preview"
+            style="width:100%;height:100%;object-fit:cover;display:block;"/>
+          <div class="preview-overlay"></div>`;
+      } else {
+        previewEl.classList.remove('preview-loading');
+        previewEl.innerHTML = `
+          <div class="preview-fallback">
+            <div class="pf-initials">${initials}</div>
+            <div class="pf-label">Portfolio</div>
+          </div>`;
+      }
+    });
+  });
 }
 
 // ── INIT ─────────────────────────────────────────────────
