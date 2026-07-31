@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Portfolio Gallery | ECCU GenAI Camp 2026</title>
+<title>Submit Your Portfolio | ECCU GenAI Camp 2026</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -13,292 +13,465 @@
   --fd:'Bebas Neue',sans-serif;--fb:'Inter',sans-serif;--fm:'Space Mono',monospace;
 }
 html,body{min-height:100%;background:var(--navy);color:var(--white);font-family:var(--fb)}
-
-/* ── HEADER ── */
-.header{
-  background:var(--navy2);border-bottom:1px solid rgba(0,201,177,.15);
-  padding:24px 48px;position:sticky;top:0;z-index:100;
-}
-.header-inner{display:flex;align-items:flex-end;justify-content:space-between;
-  margin-bottom:18px}
-.header-title{font-family:var(--fd);font-size:clamp(28px,4vw,52px);color:var(--white);line-height:1}
+.header{background:var(--navy2);border-bottom:1px solid rgba(0,201,177,.15);
+  padding:20px 40px;display:flex;align-items:center;justify-content:space-between}
+.header-title{font-family:var(--fd);font-size:28px;color:var(--white)}
 .header-sub{font-family:var(--fm);font-size:9px;letter-spacing:2px;
-  color:var(--teal);text-transform:uppercase;margin-top:4px}
+  color:var(--teal);text-transform:uppercase;margin-top:2px}
+.gallery-link{font-family:var(--fm);font-size:10px;letter-spacing:1px;
+  color:var(--teal);text-decoration:none;border:1px solid rgba(0,201,177,.3);
+  padding:6px 14px;border-radius:5px;transition:all .2s}
+.gallery-link:hover{background:rgba(0,201,177,.1)}
 
-/* ── FILTERS ── */
-.filters{display:flex;flex-direction:column;gap:10px}
-.filter-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.filter-label{font-family:var(--fm);font-size:9px;letter-spacing:2px;
-  text-transform:uppercase;color:var(--gray);min-width:72px;flex-shrink:0}
-.pill{font-family:var(--fm);font-size:10px;letter-spacing:.5px;
-  padding:5px 14px;border-radius:20px;cursor:pointer;
-  border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);
-  color:var(--gray);transition:all .2s;white-space:nowrap}
-.pill:hover{border-color:rgba(255,255,255,.25);color:var(--light)}
-.pill.active{background:rgba(0,201,177,.15);color:var(--teal);border-color:rgba(0,201,177,.35)}
+.main{max-width:600px;margin:0 auto;padding:40px 20px 80px}
 
-/* ── MAIN ── */
-.main{padding:32px 48px 80px}
-.result-meta{font-family:var(--fm);font-size:10px;color:var(--gray);
-  letter-spacing:1px;margin-bottom:20px}
-
-/* ── GRID ── */
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px}
-
-/* ── CARD ── */
+/* form card */
 .card{background:var(--navy2);border:1px solid rgba(255,255,255,.08);
-  border-radius:14px;overflow:hidden;transition:all .2s;cursor:pointer;
-  text-decoration:none;display:block;}
-.card:hover{border-color:rgba(0,201,177,.3);transform:translateY(-2px)}
+  border-radius:12px;padding:28px 32px;margin-bottom:24px}
+.card-title{font-family:var(--fd);font-size:24px;color:var(--white);margin-bottom:6px}
+.card-sub{font-size:13px;color:var(--gray);margin-bottom:24px;line-height:1.6}
 
-.preview{width:100%;height:180px;overflow:hidden;position:relative;
-  background:#060E1C;border-bottom:1px solid rgba(255,255,255,.06)}
-.preview iframe{width:150%;height:150%;
-  transform:scale(0.667);transform-origin:top left;
-  border:none;pointer-events:none}
-.preview-overlay{position:absolute;inset:0;background:transparent}
-.preview-fallback{width:100%;height:100%;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:8px}
-.preview-fallback .pf-initials{font-family:var(--fd);font-size:52px;
-  color:rgba(0,201,177,.2);line-height:1}
-.preview-fallback .pf-label{font-family:var(--fm);font-size:9px;letter-spacing:2px;
-  color:var(--gray);text-transform:uppercase}
+/* fields */
+.field{margin-bottom:20px;position:relative}
+.field label{display:block;font-family:var(--fm);font-size:10px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--gray);margin-bottom:8px}
+.field input{width:100%;background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.12);border-radius:7px;
+  padding:12px 16px;font-size:14px;color:var(--white);font-family:var(--fb);
+  transition:border-color .2s;outline:none}
+.field input:focus{border-color:var(--teal)}
+.field input::placeholder{color:var(--gray)}
+.hint{font-size:11px;color:var(--gray);margin-top:6px;line-height:1.5}
+.hint a{color:var(--teal)}
 
-.card-body{padding:16px 18px}
-.card-name{font-size:15px;font-weight:600;color:var(--white);margin-bottom:4px}
-.card-country{font-size:12px;color:var(--gray);margin-bottom:10px}
-.card-pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
-.cpill{font-family:var(--fm);font-size:9px;letter-spacing:.5px;
-  padding:3px 10px;border-radius:10px}
-.cp-eccb{background:rgba(240,165,0,.12);color:var(--gold);border:1px solid rgba(240,165,0,.2)}
-.cp-scaspa{background:rgba(0,201,177,.12);color:var(--teal);border:1px solid rgba(0,201,177,.2)}
-.cp-cub{background:rgba(232,87,58,.12);color:var(--coral);border:1px solid rgba(232,87,58,.2)}
-.cp-ird{background:rgba(123,94,167,.12);color:#B39DDB;border:1px solid rgba(123,94,167,.2)}
-.cp-outsource{background:rgba(46,204,113,.12);color:#2ECC71;border:1px solid rgba(46,204,113,.2)}
-.cp-irdanguilla{background:rgba(181,213,255,.1);color:#B5D5FF;border:1px solid rgba(181,213,255,.2)}
+/* autocomplete */
+.ac-wrap{position:relative}
+.ac-list{position:absolute;top:calc(100% + 4px);left:0;right:0;
+  background:var(--navy2);border:1px solid rgba(0,201,177,.3);
+  border-radius:7px;max-height:220px;overflow-y:auto;z-index:50;display:none}
+.ac-list.show{display:block}
+.ac-item{padding:10px 16px;font-size:13px;color:var(--light);cursor:pointer;
+  transition:background .15s;border-bottom:1px solid rgba(255,255,255,.04)}
+.ac-item:last-child{border-bottom:none}
+.ac-item:hover,.ac-item.active{background:rgba(0,201,177,.1);color:var(--white)}
+.ac-item .ac-country{font-size:11px;color:var(--gray);margin-left:6px}
+.ac-item .ac-client{font-family:var(--fm);font-size:9px;letter-spacing:1px;
+  color:var(--teal);display:block;margin-top:2px}
 
-.view-btn{display:inline-flex;align-items:center;gap:6px;
-  font-family:var(--fm);font-size:10px;letter-spacing:1px;
-  padding:7px 16px;border-radius:5px;
-  background:rgba(0,201,177,.1);color:var(--teal);
-  border:1px solid rgba(0,201,177,.25);}
+/* pin */
+.pin-wrap{display:flex;gap:10px}
+.pin-wrap input{flex:1;text-align:center;font-size:20px;letter-spacing:8px;
+  font-family:var(--fm)}
 
-/* empty state */
-.empty{text-align:center;padding:80px 20px;color:var(--gray)}
-.empty-icon{font-size:48px;margin-bottom:16px;opacity:.3}
-.empty-title{font-family:var(--fd);font-size:28px;color:var(--gray);margin-bottom:8px}
-.empty-body{font-size:13px;line-height:1.7}
+/* button */
+.submit-btn{width:100%;padding:14px;background:var(--teal);color:var(--navy);
+  font-family:var(--fd);font-size:20px;letter-spacing:2px;border:none;
+  border-radius:7px;cursor:pointer;transition:all .2s}
+.submit-btn:hover{opacity:.9;transform:translateY(-1px)}
+.submit-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
 
-/* refresh */
-.refresh-btn{font-family:var(--fm);font-size:10px;letter-spacing:1px;
-  padding:5px 12px;border-radius:5px;cursor:pointer;
-  border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);
-  color:var(--gray);transition:all .2s;margin-left:12px}
-.refresh-btn:hover{color:var(--teal);border-color:rgba(0,201,177,.3)}
+/* alerts */
+.alert{border-radius:7px;padding:12px 16px;margin-bottom:20px;
+  font-size:13px;display:none}
+.alert.show{display:block}
+.alert.success{background:rgba(0,201,177,.1);border:1px solid rgba(0,201,177,.3);color:var(--teal)}
+.alert.error{background:rgba(232,87,58,.1);border:1px solid rgba(232,87,58,.3);color:var(--coral)}
 
-/* responsive */
-@media(max-width:700px){
-  .header{padding:16px 20px}
-  .main{padding:20px 16px 60px}
-  .grid{grid-template-columns:1fr}
-}
+/* submitted list */
+.entries-title{font-family:var(--fd);font-size:20px;color:var(--white);margin-bottom:14px}
+.entry{background:var(--navy2);border:1px solid rgba(255,255,255,.07);
+  border-radius:10px;padding:14px 16px;margin-bottom:10px;
+  display:flex;align-items:center;gap:14px}
+.entry-avatar{width:40px;height:40px;border-radius:50%;background:rgba(0,201,177,.15);
+  border:1px solid rgba(0,201,177,.3);display:flex;align-items:center;
+  justify-content:center;font-family:var(--fd);font-size:16px;
+  color:var(--teal);flex-shrink:0}
+.entry-info{flex:1;min-width:0}
+.entry-name{font-size:14px;font-weight:600;color:var(--white);margin-bottom:2px}
+.entry-meta{font-size:11px;color:var(--gray)}
+.entry-link{font-family:var(--fm);font-size:10px;color:var(--teal);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px;
+  display:block;margin-top:3px}
+.entry-pills{display:flex;gap:6px;margin-top:5px;flex-wrap:wrap}
+.epill{font-family:var(--fm);font-size:9px;letter-spacing:1px;
+  padding:2px 8px;border-radius:10px}
+.ep-client{background:rgba(0,201,177,.12);color:var(--teal);border:1px solid rgba(0,201,177,.2)}
+.ep-country{background:rgba(255,255,255,.06);color:var(--gray);border:1px solid rgba(255,255,255,.08)}
+.entry-actions{display:flex;gap:6px;flex-shrink:0}
+.act-btn{font-family:var(--fm);font-size:10px;letter-spacing:1px;
+  padding:5px 12px;border-radius:5px;cursor:pointer;transition:all .2s}
+.act-edit{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:var(--light)}
+.act-edit:hover{border-color:var(--teal);color:var(--teal)}
+.act-del{background:rgba(232,87,58,.08);border:1px solid rgba(232,87,58,.2);color:var(--coral)}
+.act-del:hover{background:rgba(232,87,58,.15)}
+
+/* modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);
+  z-index:200;display:none;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:var(--navy2);border:1px solid rgba(255,255,255,.12);
+  border-radius:14px;padding:28px 32px;max-width:380px;width:90%}
+.modal-title{font-family:var(--fd);font-size:22px;color:var(--white);margin-bottom:8px}
+.modal-body{font-size:13px;color:var(--gray);margin-bottom:20px;line-height:1.6}
+.modal-actions{display:flex;gap:10px}
+.modal-cancel{flex:1;padding:10px;border-radius:6px;cursor:pointer;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+  color:var(--light);font-family:var(--fm);font-size:11px}
+.modal-confirm{flex:1;padding:10px;border-radius:6px;cursor:pointer;
+  background:var(--coral);border:none;color:var(--white);
+  font-family:var(--fd);font-size:16px;letter-spacing:1px}
 </style>
 </head>
 <body>
 
 <div class="header">
-  <div class="header-inner">
-    <div>
-      <div class="header-title">STUDENT PORTFOLIOS</div>
-      <div class="header-sub">Kittivisianwood AI Studio · ECCU GenAI Camp 2026 · Level 2</div>
-    </div>
+  <div>
+    <div class="header-title">SUBMIT YOUR PORTFOLIO</div>
+    <div class="header-sub">Kittivisianwood AI Studio · ECCU GenAI Camp 2026</div>
   </div>
-  <div class="filters">
-    <div class="filter-row">
-      <span class="filter-label">CLIENT</span>
-      <span class="pill active" onclick="setFilter('client','all',this)">All</span>
-      <span class="pill" onclick="setFilter('client','eccb',this)">ECCB</span>
-      <span class="pill" onclick="setFilter('client','scaspa',this)">SCASPA</span>
-      <span class="pill" onclick="setFilter('client','cub',this)">Caribbean Union Bank</span>
-      <span class="pill" onclick="setFilter('client','ird',this)">IRD Grenada</span>
-      <span class="pill" onclick="setFilter('client','outsource',this)">Outsource Dev</span>
-      <span class="pill" onclick="setFilter('client','irdanguilla',this)">IRD Anguilla</span>
-    </div>
-    <div class="filter-row">
-      <span class="filter-label">COUNTRY</span>
-      <span class="pill active" onclick="setFilter('country','all',this)">All</span>
-      <span class="pill" onclick="setFilter('country','Saint Kitts and Nevis',this)">St. Kitts & Nevis 🇰🇳</span>
-      <span class="pill" onclick="setFilter('country','Antigua and Barbuda',this)">Antigua & Barbuda 🇦🇬</span>
-      <span class="pill" onclick="setFilter('country','Saint Lucia',this)">Saint Lucia 🇱🇨</span>
-      <span class="pill" onclick="setFilter('country','Dominica',this)">Dominica 🇩🇲</span>
-      <span class="pill" onclick="setFilter('country','Anguilla',this)">Anguilla 🇦🇮</span>
-    </div>
-  </div>
+  <a class="gallery-link" href="https://enoete.github.io/eccucamp_26_portfolios/">View Gallery ↗</a>
 </div>
 
 <div class="main">
-  
-<div id="submitted-banner" style="display:none;
-  background:rgba(0,201,177,.1);border:1px solid rgba(0,201,177,.3);
-  border-radius:8px;padding:12px 20px;margin-bottom:20px;
-  font-size:13px;color:var(--teal);display:none;
-  align-items:center;gap:10px">
-  <span style="font-size:18px">🎉</span>
-  <div>
-    <strong style="display:block;font-family:var(--fm);font-size:10px;
-      letter-spacing:2px;text-transform:uppercase;margin-bottom:2px">Portfolio submitted!</strong>
-    Your portfolio has been saved. It should appear in the gallery below.
-    If you don't see it yet, hit ↺ Refresh.
+
+  <div class="alert" id="alert"></div>
+
+  <div class="card">
+    <div class="card-title">Add your portfolio</div>
+    <div class="card-sub">
+      Find your name, paste your Canva link, and set a 4-digit PIN.<br>
+      You'll need that PIN to edit or delete your submission later.
+    </div>
+
+    <div class="field">
+      <label>Your name</label>
+      <div class="ac-wrap">
+        <input type="text" id="name-input" placeholder="Start typing your name…" autocomplete="off"/>
+        <div class="ac-list" id="ac-list"></div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Canva public view link</label>
+      <input type="url" id="canva-url" placeholder="https://canva.link/xxxxxxxxxx"/>
+      <div class="hint">
+        In Canva: click <strong>Share</strong> → look for the green
+        <strong style="color:var(--teal)">Live · Public link</strong> →
+        click it → click <strong>Copy</strong>.<br><br>
+        The link will look like:<br>
+        <code style="color:var(--teal);font-size:10px;word-break:break-all">
+        https://canva.link/xxxxxxxxxx</code>
+      </div>
+      <div id="url-status" style="margin-top:8px;font-size:12px;display:none;
+        padding:8px 12px;border-radius:6px;font-family:var(--fm);letter-spacing:.5px"></div>
+    </div>
+
+    <div class="field">
+      <label>Create a 4-digit PIN</label>
+      <input type="password" id="pin-input" maxlength="4"
+        placeholder="····" inputmode="numeric" pattern="[0-9]{4}"/>
+      <div class="hint">Remember this PIN — you'll need it to edit or delete your portfolio later.</div>
+    </div>
+
+    <button class="submit-btn" id="submit-btn" onclick="submitPortfolio()">
+      SAVE PORTFOLIO
+    </button>
   </div>
-  <button onclick="this.parentElement.style.display='none'"
-    style="margin-left:auto;background:none;border:none;color:var(--teal);
-    font-size:16px;cursor:pointer;flex-shrink:0">✕</button>
+
+  <div id="entries-section" style="display:none">
+    <div class="entries-title">Submitted portfolios</div>
+    <div id="entries-list"></div>
+  </div>
+
 </div>
 
-  <div class="result-meta" id="result-meta">
-    Loading portfolios…
-    <button class="refresh-btn" onclick="loadData()">↺ Refresh</button>
+<!-- Delete confirm modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-title">Delete portfolio?</div>
+    <div class="modal-body">Enter your 4-digit PIN to confirm. This cannot be undone.</div>
+    <input type="password" id="modal-pin" maxlength="4" inputmode="numeric"
+      pattern="[0-9]{4}" placeholder="····"
+      style="width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);
+      border-radius:6px;padding:10px 14px;font-size:18px;text-align:center;
+      letter-spacing:8px;color:white;margin-bottom:16px;outline:none;font-family:var(--fm)"/>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+      <button class="modal-confirm" onclick="confirmDelete()">DELETE</button>
+    </div>
   </div>
-  <div class="grid" id="grid"></div>
 </div>
 
 <script>
-const JSONBIN_ID = '6a6c8500f5f4af5e29d9ac40';
-const MASTER_KEY = '$2a$10$YdbExlb2BaD00NW/hIKjcOXwJR/0mx3D/.vsZ62yW6gUFVqNlUQyO';
-const BIN_URL    = `https://api.jsonbin.io/v3/b/${JSONBIN_ID}/latest`;
-
+const SERVER = 'https://eccul2test.tekii.org';
 let portfolios = {};
-let filters = { client: 'all', country: 'all' };
-const CLIENT_PILL_CLASS = {
-  eccb: 'cp-eccb', scaspa: 'cp-scaspa', cub: 'cp-cub',
-  ird: 'cp-ird', outsource: 'cp-outsource', irdanguilla: 'cp-irdanguilla'
-};
+let selectedStudent = null;
+let editingId = null;
+let pendingDeleteId = null;
 
-// ── OG IMAGE VIA JSONLINK ─────────────────────────────────
-function getThumbUrl(url) {
-  // /ogimg proxies the Canva page server-side and streams the cover image bytes
-  // Works as a direct <img src> — no fetch, no CORS, no expiry issues
-  return 'https://eccul2test.tekii.org/ogimg?url=' + encodeURIComponent(url);
+// ── AUTOCOMPLETE ──────────────────────────────────────────
+const nameInput = document.getElementById('name-input');
+const acList    = document.getElementById('ac-list');
+let acIdx = -1;
+
+nameInput.addEventListener('input', () => {
+  const q = nameInput.value.trim().toLowerCase();
+  acList.innerHTML = '';
+  acIdx = -1;
+  if (!q) { acList.classList.remove('show'); selectedStudent = null; return; }
+  const matches = STUDENTS.filter(s => s.name.toLowerCase().includes(q));
+  if (!matches.length) { acList.classList.remove('show'); return; }
+  matches.forEach((s) => {
+    const d = document.createElement('div');
+    d.className = 'ac-item';
+    d.innerHTML = s.name + ' <span class="ac-country">' + s.country + '</span><span class="ac-client">' + s.clientLabels.join(', ') + '</span>';
+    d.addEventListener('mousedown', e => { e.preventDefault(); selectStudent(s); });
+    acList.appendChild(d);
+  });
+  acList.classList.add('show');
+});
+
+nameInput.addEventListener('keydown', e => {
+  const items = acList.querySelectorAll('.ac-item');
+  if (e.key === 'ArrowDown') { acIdx = Math.min(acIdx+1, items.length-1); highlight(items); }
+  else if (e.key === 'ArrowUp') { acIdx = Math.max(acIdx-1, 0); highlight(items); }
+  else if (e.key === 'Enter' && acIdx >= 0) { items[acIdx].dispatchEvent(new MouseEvent('mousedown')); }
+  else if (e.key === 'Escape') { acList.classList.remove('show'); }
+});
+
+function highlight(items) {
+  items.forEach((el,i) => el.classList.toggle('active', i === acIdx));
+  if (items[acIdx]) items[acIdx].scrollIntoView({block:'nearest'});
 }
 
-// ── LOAD DATA ─────────────────────────────────────────────
+document.addEventListener('click', e => {
+  if (!e.target.closest('.ac-wrap')) acList.classList.remove('show');
+});
+
+function selectStudent(s) {
+  selectedStudent = s;
+  nameInput.value = s.name;
+  acList.classList.remove('show');
+}
+
+// ── URL VALIDATOR ─────────────────────────────────────────
+function isValidEmbedUrl(url) {
+  const u = url.trim();
+  return /^https:\/\/(www\.)?canva\.com\/design\/[A-Za-z0-9_-]+\/[^?#]*\/view/.test(u)
+      || /^https:\/\/canva\.link\/[A-Za-z0-9_-]+/.test(u);
+}
+
+document.getElementById('canva-url').addEventListener('input', function() {
+  const url = this.value.trim();
+  const statusEl = document.getElementById('url-status');
+  if (!url) { statusEl.style.display = 'none'; return; }
+  if (isValidEmbedUrl(url)) {
+    statusEl.style.display = 'block';
+    statusEl.style.background = 'rgba(0,201,177,.1)';
+    statusEl.style.border = '1px solid rgba(0,201,177,.3)';
+    statusEl.style.color = 'var(--teal)';
+    statusEl.textContent = '\u2713 Valid Canva public view link';
+  } else {
+    statusEl.style.display = 'block';
+    statusEl.style.background = 'rgba(232,87,58,.1)';
+    statusEl.style.border = '1px solid rgba(232,87,58,.3)';
+    statusEl.style.color = 'var(--coral)';
+    if (url.includes('canva.com') && !url.includes('/view')) {
+      statusEl.textContent = "\u2717 Almost! Make sure the link ends in /view";
+    } else if (url.includes('canva.com')) {
+      statusEl.textContent = "\u2717 This doesn't look like a Canva URL. It must contain canva.com/design/";
+    } else {
+      statusEl.textContent = "\u2717 This doesn't look like a Canva URL.";
+    }
+  }
+});
+
+// ── LOAD PORTFOLIO DATA FROM SERVER ──────────────────────
 async function loadData() {
-  document.getElementById('result-meta').innerHTML =
-    'Loading… <button class="refresh-btn" onclick="loadData()">↺ Refresh</button>';
   try {
-    const res = await fetch(BIN_URL, {
-      headers: {'X-Master-Key': MASTER_KEY, 'X-Bin-Meta': 'false'}
-    });
-    if (!res.ok) throw new Error('fetch failed');
+    const res = await fetch(SERVER + '/portfolio');
+    if (!res.ok) throw new Error('failed');
     portfolios = await res.json();
     if (typeof portfolios !== 'object' || Array.isArray(portfolios)) portfolios = {};
-  } catch {
-    portfolios = {};
-  }
-  renderGrid();
+  } catch { portfolios = {}; }
+  renderEntries();
 }
 
-// ── FILTERS ───────────────────────────────────────────────
-function setFilter(type, val, el) {
-  filters[type] = val;
-  el.closest('.filter-row').querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
-  el.classList.add('active');
-  renderGrid();
-}
+// ── SUBMIT ────────────────────────────────────────────────
+async function submitPortfolio() {
+  const url = document.getElementById('canva-url').value.trim();
+  const pin = document.getElementById('pin-input').value.trim();
+  if (!selectedStudent) return showAlert('Please select your name from the list.', 'error');
+  if (!isValidEmbedUrl(url)) return showAlert('Please paste your Canva public link.', 'error');
+  if (!/^\d{4}$/.test(pin)) return showAlert('PIN must be exactly 4 digits.', 'error');
 
-// ── RENDER ────────────────────────────────────────────────
-function renderGrid() {
-  const grid = document.getElementById('grid');
-  const meta = document.getElementById('result-meta');
-  grid.innerHTML = '';
+  const id = selectedStudent.name.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
 
-  let entries = Object.values(portfolios);
-
-  if (filters.client !== 'all')
-    entries = entries.filter(p =>
-      (p.clients || [p.client]).includes(filters.client)
-    );
-  if (filters.country !== 'all')
-    entries = entries.filter(p => p.country && p.country.includes(filters.country));
-
-  entries.sort((a,b) => a.name.localeCompare(b.name));
-
-  const total = Object.values(portfolios).length;
-  meta.innerHTML = `Showing ${entries.length} of ${total} portfolio${total !== 1 ? 's' : ''}
-    <button class="refresh-btn" onclick="loadData()">↺ Refresh</button>`;
-
-  if (!entries.length) {
-    grid.innerHTML = `
-      <div class="empty" style="grid-column:1/-1">
-        <div class="empty-icon">📂</div>
-        <div class="empty-title">No portfolios yet</div>
-        <div class="empty-body">
-          ${total === 0
-            ? 'No portfolios have been submitted yet.<br>Be the first!'
-            : 'No portfolios match this filter.<br>Try a different selection.'}
-        </div>
-      </div>`;
-    return;
+  if (portfolios[id] && !editingId) {
+    return showAlert('A portfolio already exists for this name. Use the Edit button to update it.', 'error');
+  }
+  if (editingId && portfolios[editingId] && portfolios[editingId].pin !== pin) {
+    return showAlert('Incorrect PIN.', 'error');
   }
 
-  entries.forEach(p => {
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true; btn.textContent = 'SAVING\u2026';
+
+  try {
+    const entry = {
+      id,
+      name: selectedStudent.name,
+      country: selectedStudent.country,
+      clients: selectedStudent.clients,
+      clientLabels: selectedStudent.clientLabels,
+      url,
+      pin,
+      submitted: Date.now()
+    };
+    const res = await fetch(SERVER + '/portfolio', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(entry)
+    });
+    if (!res.ok) { const err = await res.json(); throw new Error(err.error || 'Save failed'); }
+    btn.disabled = false; btn.textContent = 'SAVE PORTFOLIO';
+    editingId = null;
+    document.getElementById('canva-url').value = '';
+    document.getElementById('pin-input').value = '';
+    nameInput.value = ''; selectedStudent = null;
+    window.location.href = 'https://enoete.github.io/eccucamp_26_portfolios/?submitted=1';
+  } catch(e) {
+    btn.disabled = false; btn.textContent = 'SAVE PORTFOLIO';
+    showAlert('Error saving: ' + e.message, 'error');
+  }
+}
+
+// ── RENDER ENTRIES ────────────────────────────────────────
+function renderEntries() {
+  const list = document.getElementById('entries-list');
+  const section = document.getElementById('entries-section');
+  const entries = Object.entries(portfolios);
+  if (!entries.length) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  list.innerHTML = '';
+  entries.sort((a,b) => a[1].name.localeCompare(b[1].name)).forEach(([id, p]) => {
     const initials = p.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    const firstClient = (p.clients && p.clients[0]) || p.client;
-    const pillClass = CLIENT_PILL_CLASS[firstClient] || 'cp-eccb';
-
-    const card = document.createElement('a');
-    card.className = 'card';
-    card.href = p.url;
-    card.target = '_blank';
-    card.rel = 'noopener noreferrer';
-    card.innerHTML = `
-      <div class="preview"><div class="preview-fallback"><div class="pf-initials">${initials}</div><div class="pf-label">Loading…</div></div></div>
-      <div class="card-body">
-        <div class="card-name">${p.name}</div>
-        <div class="card-country">${p.country}</div>
-        <div class="card-pills">
-          ${(p.clientLabels || [p.clientLabel]).map((label, i) => {
-            const clientKey = (p.clients || [p.client])[i] || p.client;
-            const pc = CLIENT_PILL_CLASS[clientKey] || 'cp-eccb';
-            return `<span class="cpill ${pc}">${label}</span>`;
-          }).join('')}
-        </div>
-        <span class="view-btn">View Portfolio ↗</span>
-      </div>
-    `;
-    grid.appendChild(card);
-
-    const previewEl = card.querySelector('.preview');
-    const img = document.createElement('img');
-    const thumbSrc = getThumbUrl(p.url);
-    img.src = thumbSrc;
-    img.alt = p.name + ' portfolio preview';
-    img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
-    img.onload = function() {
-      // Clear the loading placeholder and show only the image
-      previewEl.innerHTML = '';
-      previewEl.appendChild(img);
-      const ov = document.createElement('div');
-      ov.className = 'preview-overlay';
-      previewEl.appendChild(ov);
-    };
-    img.onerror = function() {
-      previewEl.innerHTML = '<div class="preview-fallback"><div class="pf-initials">'
-        + initials + '</div><div class="pf-label">Portfolio</div></div>';
-    };
-    // img and overlay appended inside onload after clearing the placeholder
+    const labels = p.clientLabels || [p.clientLabel];
+    const div = document.createElement('div');
+    div.className = 'entry';
+    div.innerHTML =
+      '<div class="entry-avatar">' + initials + '</div>' +
+      '<div class="entry-info">' +
+        '<div class="entry-name">' + p.name + '</div>' +
+        '<div class="entry-meta">' + p.country + '</div>' +
+        '<a class="entry-link" href="' + p.url + '" target="_blank">' + p.url.replace('https://','') + '</a>' +
+        '<div class="entry-pills">' + labels.map(l => '<span class="epill ep-client">' + l + '</span>').join('') + '</div>' +
+      '</div>' +
+      '<div class="entry-actions">' +
+        '<button class="act-btn act-edit" onclick="startEdit(\'' + id + '\')">Edit</button>' +
+        '<button class="act-btn act-del" onclick="startDelete(\'' + id + '\')">Delete</button>' +
+      '</div>';
+    list.appendChild(div);
   });
 }
 
-// ── INIT ─────────────────────────────────────────────────
-const params = new URLSearchParams(window.location.search);
-if (params.get('submitted') === '1') {
-  const banner = document.getElementById('submitted-banner');
-  if (banner) banner.style.display = 'flex';
-  window.history.replaceState({}, '', window.location.pathname);
+// ── EDIT ──────────────────────────────────────────────────
+function startEdit(id) {
+  const p = portfolios[id];
+  if (!p) return;
+  editingId = id;
+  const s = STUDENTS.find(s => s.name === p.name);
+  if (s) { selectedStudent = s; nameInput.value = s.name; }
+  document.getElementById('canva-url').value = p.url;
+  document.getElementById('pin-input').value = '';
+  document.getElementById('pin-input').placeholder = 'Enter your PIN to confirm edit';
+  window.scrollTo({top:0,behavior:'smooth'});
+  showAlert('Editing — update the link and enter your PIN, then save.', 'success');
 }
+
+// ── DELETE ────────────────────────────────────────────────
+function startDelete(id) {
+  pendingDeleteId = id;
+  document.getElementById('modal-pin').value = '';
+  document.getElementById('modal').classList.add('show');
+}
+function closeModal() {
+  document.getElementById('modal').classList.remove('show');
+  pendingDeleteId = null;
+}
+async function confirmDelete() {
+  const pin = document.getElementById('modal-pin').value.trim();
+  if (!pendingDeleteId) return closeModal();
+  try {
+    const res = await fetch(SERVER + '/portfolio/' + pendingDeleteId, {
+      method: 'DELETE',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ pin })
+    });
+    if (!res.ok) {
+      document.getElementById('modal-pin').style.borderColor = '#E8573A';
+      setTimeout(() => document.getElementById('modal-pin').style.borderColor = '', 1000);
+      return;
+    }
+    closeModal();
+    showAlert('Portfolio deleted.', 'error');
+    await loadData();
+  } catch(e) {
+    closeModal();
+    showAlert('Error: ' + e.message, 'error');
+  }
+}
+
+// ── ALERT ─────────────────────────────────────────────────
+function showAlert(msg, type) {
+  const el = document.getElementById('alert');
+  el.textContent = msg;
+  el.className = 'alert ' + type + ' show';
+  setTimeout(() => el.classList.remove('show'), 4000);
+}
+
+// ── LOAD STUDENTS FROM REGISTRATION BIN ──────────────────
+const MASTER_KEY  = '$2a$10$YdbExlb2BaD00NW/hIKjcOXwJR/0mx3D/.vsZ62yW6gUFVqNlUQyO';
+const REG_BIN_URL = 'https://api.jsonbin.io/v3/b/6a4b4286da38895dfe335fe9/latest';
+let STUDENTS = [];
+
+async function loadStudents() {
+  try {
+    const res = await fetch(REG_BIN_URL, {
+      headers: {'X-Master-Key': MASTER_KEY, 'X-Bin-Meta': 'false'}
+    });
+    const data = await res.json();
+    const reg = data.registration || data;
+    const CLIENT_LABELS = {
+      eccb: 'ECCB / Credit Bureau', scaspa: 'SCASPA',
+      outsource: 'Outsource Dev Studio', ird: 'IRD Grenada',
+      cub: 'Caribbean Union Bank', irdanguilla: 'IRD Anguilla'
+    };
+    const studentMap = {};
+    for (const [clientKey, info] of Object.entries(reg)) {
+      if (!info.members) continue;
+      for (const m of info.members) {
+        const name = (m.fn + ' ' + m.ln).trim();
+        const normName = name.split(' ').map(w => w.length > 0 ? w[0].toUpperCase() + w.slice(1) : w).join(' ');
+        if (!studentMap[normName]) {
+          studentMap[normName] = { name: normName, country: m.country || '', clients: [], clientLabels: [] };
+        }
+        const label = CLIENT_LABELS[clientKey] || clientKey;
+        if (!studentMap[normName].clients.includes(clientKey)) {
+          studentMap[normName].clients.push(clientKey);
+          studentMap[normName].clientLabels.push(label);
+        }
+      }
+    }
+    STUDENTS = Object.values(studentMap).sort((a,b) => a.name.localeCompare(b.name));
+    document.getElementById('name-input').placeholder = 'Start typing your name\u2026 (' + STUDENTS.length + ' registered students)';
+  } catch {
+    document.getElementById('name-input').placeholder = 'Could not load names \u2014 check your connection';
+  }
+}
+
+loadStudents();
 loadData();
-// No auto-polling — use the manual refresh button
 </script>
 </body>
 </html>
