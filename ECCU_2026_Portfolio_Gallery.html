@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Portfolio Gallery | ECCU GenAI Camp 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0A1628;--navy2:#112240;--coral:#E8573A;--teal:#00C9B1;
+  --gold:#F0A500;--white:#FFFFFF;--gray:#8892A4;--light:#D1D9E6;
+  --fd:'Bebas Neue',sans-serif;--fb:'Inter',sans-serif;--fm:'Space Mono',monospace;
+}
+html,body{min-height:100%;background:var(--navy);color:var(--white);font-family:var(--fb)}
+
+/* ── HEADER ── */
+.header{
+  background:var(--navy2);border-bottom:1px solid rgba(0,201,177,.15);
+  padding:24px 48px;position:sticky;top:0;z-index:100;
+}
+.header-inner{display:flex;align-items:flex-end;justify-content:space-between;
+  margin-bottom:18px}
+.header-title{font-family:var(--fd);font-size:clamp(28px,4vw,52px);color:var(--white);line-height:1}
+.header-sub{font-family:var(--fm);font-size:9px;letter-spacing:2px;
+  color:var(--teal);text-transform:uppercase;margin-top:4px}
+
+/* ── FILTERS ── */
+.filters{display:flex;flex-direction:column;gap:10px}
+.filter-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.filter-label{font-family:var(--fm);font-size:9px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--gray);min-width:72px;flex-shrink:0}
+.pill{font-family:var(--fm);font-size:10px;letter-spacing:.5px;
+  padding:5px 14px;border-radius:20px;cursor:pointer;
+  border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);
+  color:var(--gray);transition:all .2s;white-space:nowrap}
+.pill:hover{border-color:rgba(255,255,255,.25);color:var(--light)}
+.pill.active{background:rgba(0,201,177,.15);color:var(--teal);border-color:rgba(0,201,177,.35)}
+
+/* ── MAIN ── */
+.main{padding:32px 48px 80px}
+.result-meta{font-family:var(--fm);font-size:10px;color:var(--gray);
+  letter-spacing:1px;margin-bottom:20px}
+
+/* ── GRID ── */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px}
+
+/* ── CARD ── */
+.card{background:var(--navy2);border:1px solid rgba(255,255,255,.08);
+  border-radius:14px;overflow:hidden;transition:all .2s;cursor:pointer}
+.card:hover{border-color:rgba(0,201,177,.3);transform:translateY(-2px)}
+
+.preview{width:100%;height:180px;overflow:hidden;position:relative;
+  background:#060E1C;border-bottom:1px solid rgba(255,255,255,.06)}
+.preview iframe{width:150%;height:150%;
+  transform:scale(0.667);transform-origin:top left;
+  border:none;pointer-events:none}
+.preview-overlay{position:absolute;inset:0;background:transparent}
+.preview-fallback{width:100%;height:100%;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:8px}
+.preview-fallback .pf-initials{font-family:var(--fd);font-size:52px;
+  color:rgba(0,201,177,.2);line-height:1}
+.preview-fallback .pf-label{font-family:var(--fm);font-size:9px;letter-spacing:2px;
+  color:var(--gray);text-transform:uppercase}
+
+.card-body{padding:16px 18px}
+.card-name{font-size:15px;font-weight:600;color:var(--white);margin-bottom:4px}
+.card-country{font-size:12px;color:var(--gray);margin-bottom:10px}
+.card-pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.cpill{font-family:var(--fm);font-size:9px;letter-spacing:.5px;
+  padding:3px 10px;border-radius:10px}
+.cp-eccb{background:rgba(240,165,0,.12);color:var(--gold);border:1px solid rgba(240,165,0,.2)}
+.cp-scaspa{background:rgba(0,201,177,.12);color:var(--teal);border:1px solid rgba(0,201,177,.2)}
+.cp-cub{background:rgba(232,87,58,.12);color:var(--coral);border:1px solid rgba(232,87,58,.2)}
+.cp-ird{background:rgba(123,94,167,.12);color:#B39DDB;border:1px solid rgba(123,94,167,.2)}
+.cp-outsource{background:rgba(46,204,113,.12);color:#2ECC71;border:1px solid rgba(46,204,113,.2)}
+.cp-irdanguilla{background:rgba(181,213,255,.1);color:#B5D5FF;border:1px solid rgba(181,213,255,.2)}
+
+.view-btn{display:inline-flex;align-items:center;gap:6px;
+  font-family:var(--fm);font-size:10px;letter-spacing:1px;
+  padding:7px 16px;border-radius:5px;text-decoration:none;
+  background:rgba(0,201,177,.1);color:var(--teal);
+  border:1px solid rgba(0,201,177,.25);transition:all .2s}
+.view-btn:hover{background:rgba(0,201,177,.2);border-color:var(--teal)}
+
+/* empty state */
+.empty{text-align:center;padding:80px 20px;color:var(--gray)}
+.empty-icon{font-size:48px;margin-bottom:16px;opacity:.3}
+.empty-title{font-family:var(--fd);font-size:28px;color:var(--gray);margin-bottom:8px}
+.empty-body{font-size:13px;line-height:1.7}
+
+/* refresh */
+.refresh-btn{font-family:var(--fm);font-size:10px;letter-spacing:1px;
+  padding:5px 12px;border-radius:5px;cursor:pointer;
+  border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);
+  color:var(--gray);transition:all .2s;margin-left:12px}
+.refresh-btn:hover{color:var(--teal);border-color:rgba(0,201,177,.3)}
+
+/* responsive */
+@media(max-width:700px){
+  .header{padding:16px 20px}
+  .main{padding:20px 16px 60px}
+  .grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div>
+      <div class="header-title">STUDENT PORTFOLIOS</div>
+      <div class="header-sub">Kittivisianwood AI Studio · ECCU GenAI Camp 2026 · Level 2</div>
+    </div>
+  </div>
+  <div class="filters">
+    <div class="filter-row">
+      <span class="filter-label">CLIENT</span>
+      <span class="pill active" onclick="setFilter('client','all',this)">All</span>
+      <span class="pill" onclick="setFilter('client','eccb',this)">ECCB</span>
+      <span class="pill" onclick="setFilter('client','scaspa',this)">SCASPA</span>
+      <span class="pill" onclick="setFilter('client','cub',this)">Caribbean Union Bank</span>
+      <span class="pill" onclick="setFilter('client','ird',this)">IRD Grenada</span>
+      <span class="pill" onclick="setFilter('client','outsource',this)">Outsource Dev</span>
+      <span class="pill" onclick="setFilter('client','irdanguilla',this)">IRD Anguilla</span>
+    </div>
+    <div class="filter-row">
+      <span class="filter-label">COUNTRY</span>
+      <span class="pill active" onclick="setFilter('country','all',this)">All</span>
+      <span class="pill" onclick="setFilter('country','Saint Kitts and Nevis',this)">St. Kitts & Nevis 🇰🇳</span>
+      <span class="pill" onclick="setFilter('country','Antigua and Barbuda',this)">Antigua & Barbuda 🇦🇬</span>
+      <span class="pill" onclick="setFilter('country','Saint Lucia',this)">Saint Lucia 🇱🇨</span>
+      <span class="pill" onclick="setFilter('country','Dominica',this)">Dominica 🇩🇲</span>
+      <span class="pill" onclick="setFilter('country','Anguilla',this)">Anguilla 🇦🇮</span>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  
+<div id="submitted-banner" style="display:none;
+  background:rgba(0,201,177,.1);border:1px solid rgba(0,201,177,.3);
+  border-radius:8px;padding:12px 20px;margin-bottom:20px;
+  font-size:13px;color:var(--teal);display:none;
+  align-items:center;gap:10px">
+  <span style="font-size:18px">🎉</span>
+  <div>
+    <strong style="display:block;font-family:var(--fm);font-size:10px;
+      letter-spacing:2px;text-transform:uppercase;margin-bottom:2px">Portfolio submitted!</strong>
+    Your portfolio has been saved. It should appear in the gallery below.
+    If you don't see it yet, hit ↺ Refresh.
+  </div>
+  <button onclick="this.parentElement.style.display='none'"
+    style="margin-left:auto;background:none;border:none;color:var(--teal);
+    font-size:16px;cursor:pointer;flex-shrink:0">✕</button>
+</div>
+
+  <div class="result-meta" id="result-meta">
+    Loading portfolios…
+    <button class="refresh-btn" onclick="loadData()">↺ Refresh</button>
+  </div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+const JSONBIN_ID = '6a6c8500f5f4af5e29d9ac40';
+const MASTER_KEY = '$2a$10$YdbExlb2BaD00NW/hIKjcOXwJR/0mx3D/.vsZ62yW6gUFVqNlUQyO';
+const BIN_URL    = `https://api.jsonbin.io/v3/b/${JSONBIN_ID}/latest`;
+
+let portfolios = {};
+let filters = { client: 'all', country: 'all' };
+
+const CLIENT_PILL_CLASS = {
+  eccb: 'cp-eccb', scaspa: 'cp-scaspa', cub: 'cp-cub',
+  ird: 'cp-ird', outsource: 'cp-outsource', irdanguilla: 'cp-irdanguilla'
+};
+
+// ── LOAD DATA ─────────────────────────────────────────────
+async function loadData() {
+  document.getElementById('result-meta').innerHTML =
+    'Loading… <button class="refresh-btn" onclick="loadData()">↺ Refresh</button>';
+  try {
+    const res = await fetch(BIN_URL, {
+      headers: {'X-Master-Key': MASTER_KEY, 'X-Bin-Meta': 'false'}
+    });
+    if (!res.ok) throw new Error('fetch failed');
+    portfolios = await res.json();
+    if (typeof portfolios !== 'object' || Array.isArray(portfolios)) portfolios = {};
+  } catch {
+    portfolios = {};
+  }
+  renderGrid();
+}
+
+// ── FILTERS ───────────────────────────────────────────────
+function setFilter(type, val, el) {
+  filters[type] = val;
+  el.closest('.filter-row').querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  renderGrid();
+}
+
+// ── RENDER ────────────────────────────────────────────────
+function renderGrid() {
+  const grid = document.getElementById('grid');
+  const meta = document.getElementById('result-meta');
+  grid.innerHTML = '';
+
+  let entries = Object.values(portfolios);
+
+  // Filter
+  if (filters.client !== 'all')
+    entries = entries.filter(p => p.client === filters.client);
+  if (filters.country !== 'all')
+    entries = entries.filter(p => p.country && p.country.includes(filters.country));
+
+  // Sort alphabetically
+  entries.sort((a,b) => a.name.localeCompare(b.name));
+
+  const total = Object.values(portfolios).length;
+  meta.innerHTML = `Showing ${entries.length} of ${total} portfolio${total !== 1 ? 's' : ''}
+    <button class="refresh-btn" onclick="loadData()">↺ Refresh</button>`;
+
+  if (!entries.length) {
+    grid.innerHTML = `
+      <div class="empty" style="grid-column:1/-1">
+        <div class="empty-icon">📂</div>
+        <div class="empty-title">No portfolios yet</div>
+        <div class="empty-body">
+          ${total === 0
+            ? 'No portfolios have been submitted yet.<br>Be the first!'
+            : 'No portfolios match this filter.<br>Try a different selection.'}
+        </div>
+      </div>`;
+    return;
+  }
+
+  entries.forEach(p => {
+    const initials = p.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const pillClass = CLIENT_PILL_CLASS[p.client] || 'cp-eccb';
+
+    // Build Canva embed URL
+    // Convert standard canva.com/design/ID/slug/view → embed format
+    const embedUrl = buildEmbedUrl(p.url);
+
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="preview">
+        ${embedUrl
+          ? `<iframe src="${embedUrl}" loading="lazy" scrolling="no"
+               allow="fullscreen" title="${p.name}'s portfolio"></iframe>
+             <div class="preview-overlay"></div>`
+          : `<div class="preview-fallback">
+               <div class="pf-initials">${initials}</div>
+               <div class="pf-label">Portfolio</div>
+             </div>`
+        }
+      </div>
+      <div class="card-body">
+        <div class="card-name">${p.name}</div>
+        <div class="card-country">${p.country}</div>
+        <div class="card-pills">
+          <span class="cpill ${pillClass}">${p.clientLabel}</span>
+        </div>
+        <a class="view-btn" href="${p.url}" target="_blank">
+          View Portfolio ↗
+        </a>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// ── BUILD CANVA EMBED URL ─────────────────────────────────
+function buildEmbedUrl(url) {
+  if (!url) return null;
+  try {
+    // Standard format: https://www.canva.com/design/DAxxxxxx/slug/view
+    const match = url.match(/canva\.com\/design\/([A-Za-z0-9_-]+)/);
+    if (match) {
+      return `https://www.canva.com/design/${match[1]}/view?embed`;
+    }
+    return null;
+  } catch { return null; }
+}
+
+// ── INIT ─────────────────────────────────────────────────
+const params = new URLSearchParams(window.location.search);
+if (params.get('submitted') === '1') {
+  const banner = document.getElementById('submitted-banner');
+  if (banner) banner.style.display = 'flex';
+  window.history.replaceState({}, '', window.location.pathname);
+}
+loadData();
+// No auto-polling — use the manual refresh button
+</script>
+</body>
+</html>
