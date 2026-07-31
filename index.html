@@ -180,7 +180,8 @@ const CLIENT_PILL_CLASS = {
 async function fetchOgImage(url) {
   if (ogCache[url] !== undefined) return ogCache[url];
   try {
-    const res = await fetch(`https://jsonlink.io/api/extract?url=${encodeURIComponent(url)}`);
+    const proxy = 'https://corsproxy.io/?';
+    const res = await fetch(`${proxy}${encodeURIComponent('https://jsonlink.io/api/extract?url=' + encodeURIComponent(url))}`);
     if (!res.ok) throw new Error('api error');
     const data = await res.json();
     const img = (data.images && data.images.length > 0) ? data.images[0] : null;
