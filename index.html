@@ -215,7 +215,9 @@ function renderGrid() {
   let entries = Object.values(portfolios);
 
   if (filters.client !== 'all')
-    entries = entries.filter(p => p.client === filters.client);
+    entries = entries.filter(p =>
+      (p.clients || [p.client]).includes(filters.client)
+    );
   if (filters.country !== 'all')
     entries = entries.filter(p => p.country && p.country.includes(filters.country));
 
@@ -241,7 +243,8 @@ function renderGrid() {
 
   entries.forEach(p => {
     const initials = p.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    const pillClass = CLIENT_PILL_CLASS[p.client] || 'cp-eccb';
+    const firstClient = (p.clients && p.clients[0]) || p.client;
+    const pillClass = CLIENT_PILL_CLASS[firstClient] || 'cp-eccb';
 
     const card = document.createElement('a');
     card.className = 'card';
@@ -254,7 +257,11 @@ function renderGrid() {
         <div class="card-name">${p.name}</div>
         <div class="card-country">${p.country}</div>
         <div class="card-pills">
-          <span class="cpill ${pillClass}">${p.clientLabel}</span>
+          ${(p.clientLabels || [p.clientLabel]).map((label, i) => {
+            const clientKey = (p.clients || [p.client])[i] || p.client;
+            const pc = CLIENT_PILL_CLASS[clientKey] || 'cp-eccb';
+            return `<span class="cpill ${pc}">${label}</span>`;
+          }).join('')}
         </div>
         <span class="view-btn">View Portfolio ↗</span>
       </div>
