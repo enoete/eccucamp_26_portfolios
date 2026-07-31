@@ -264,23 +264,22 @@ function renderGrid() {
     const previewEl = card.querySelector('.preview');
     const img = document.createElement('img');
     const thumbSrc = getThumbUrl(p.url);
-    console.log('[gallery] img.src:', thumbSrc);
     img.src = thumbSrc;
     img.alt = p.name + ' portfolio preview';
     img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
     img.onload = function() {
-      console.log('[gallery] LOADED:', thumbSrc);
-      previewEl.style.background = 'none';
+      // Clear the loading placeholder and show only the image
+      previewEl.innerHTML = '';
+      previewEl.appendChild(img);
+      const ov = document.createElement('div');
+      ov.className = 'preview-overlay';
+      previewEl.appendChild(ov);
     };
     img.onerror = function() {
-      console.log('[gallery] FAILED:', thumbSrc);
       previewEl.innerHTML = '<div class="preview-fallback"><div class="pf-initials">'
         + initials + '</div><div class="pf-label">Portfolio</div></div>';
     };
-    const overlay = document.createElement('div');
-    overlay.className = 'preview-overlay';
-    previewEl.appendChild(img);
-    previewEl.appendChild(overlay);
+    // img and overlay appended inside onload after clearing the placeholder
   });
 }
 
