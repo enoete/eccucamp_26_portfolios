@@ -180,63 +180,30 @@ const CLIENT_PILL_CLASS = {
 async function fetchOgImage(url) {
   if (ogCache[url] !== undefined) return ogCache[url];
 
-  // Resolve canva.link shortlinks to full URL first
-  let resolvedUrl = url;
-  if (url.includes('canva.link')) {
-    try {
-      const r = await fetch(
-        `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
-        { signal: AbortSignal.timeout(6000) }
-      );
-      if (r.ok) {
-        const d = await r.json();
-        const canon = (d.contents || '').match(/<link[^>]+rel=["']canonical["'][^>]+href=["'](https?:[^"']+)["']/);
-        if (canon && canon[1]) resolvedUrl = canon[1];
-      }
-    } catch { /* use original url */ }
-  }
-
+  // Microlink free API — returns screenshot hosted on their CDN
+  // We use the JSON endpoint and extract the screenshot URL from the response
+  // This avoids CORS entirely since the final <img src> loads from microlink's CDN
   try {
-    const res = await fetch(
-      `https://api.allorigins.win/get?url=${encodeURIComponent(resolvedUrl)}`,
-      { signal: AbortSignal.timeout(8000) }
-    );
-    if (!res.ok) throw new Error('failed');
+    const apiUrl = `https://api.microlink.io/?url=${encodeURIComponent(url)}&screenshot=true&meta=false`;
+    const res = await fetch(apiUrl, { signal: AbortSignal.timeout(10000) });
+    if (!res.ok) throw new Error('microlink failed');
     const data = await res.json();
-    const pageHtml = data.contents || '';
-
-    // Debug — log first 2000 chars of returned HTML to console
-    console.log('[portfolio] allorigins returned for', resolvedUrl);
-    console.log('[portfolio] HTML snippet:', pageHtml.slice(0, 2000));
-
-    // Try multiple og:image patterns — Canva may use different formats
-    const patterns = [
-      /<meta[^>]+property=["']og:image["'][^>]+content=["'](https?:[^"']+)["']/i,
-      /<meta[^>]+content=["'](https?:[^"']+)["'][^>]+property=["']og:image["']/i,
-      /<meta[^>]+name=["']og:image["'][^>]+content=["'](https?:[^"']+)["']/i,
-      /<meta[^>]+content=["'](https?:[^"']+)["'][^>]+name=["']og:image["']/i,
-      /og:image.*?content=["'](https?:[^"']+)["']/i,
-      /"og:image"[^}]*"url":"(https?:[^"]+)"/i,
-      /"og:image","content":"(https?:[^"]+)"/i,
-    ];
-
-    for (const p of patterns) {
-      const match = pageHtml.match(p);
-      if (match && match[1]) {
-        console.log('[portfolio] og:image found:', match[1]);
-        ogCache[url] = match[1];
-        return match[1];
-      }
-    }
-
-    console.log('[portfolio] No og:image found in returned HTML');
-    ogCache[url] = null;
-    return null;
+    // Response shape: { data: { screenshot: { url: "https://cdn.microlink.io/..." } } }
+    const img = data?.data?.screenshot?.url || null;
+    console.log('[portfolio] microlink result for', url, ':', img);
+    ogCache[url] = img;
+    return img;
   } catch(e) {
-    console.log('[portfolio] Error:', e.message);
+    console.log('[portfolio] microlink error:', e.message);
     ogCache[url] = null;
     return null;
   }
+}
+
+// Build a direct microlink embed URL — use as img src without any fetch
+// This is the fallback if the JSON API doesn't return a screenshot
+function microlinkImgSrc(url) {
+  return `https://api.microlink.io/?url=${encodeURIComponent(url)}&screenshot=true&meta=false&embed=screenshot.url`;
 }
 
 // ── LOAD DATA ─────────────────────────────────────────────
@@ -324,21 +291,15 @@ function renderGrid() {
     // Fetch og:image and update the preview asynchronously
     const previewEl = card.querySelector('.preview');
     fetchOgImage(p.url).then(imgUrl => {
-      if (imgUrl) {
-        previewEl.classList.remove('preview-loading');
-        previewEl.innerHTML = `
-          <img src="${imgUrl}"
-            alt="${p.name} portfolio preview"
-            style="width:100%;height:100%;object-fit:cover;display:block;"/>
-          <div class="preview-overlay"></div>`;
-      } else {
-        previewEl.classList.remove('preview-loading');
-        previewEl.innerHTML = `
-          <div class="preview-fallback">
-            <div class="pf-initials">${initials}</div>
-            <div class="pf-label">Portfolio</div>
-          </div>`;
-      }
+      previewEl.classList.remove('preview-loading');
+      // Use fetched URL, or fall back to microlink direct embed as img src
+      const finalImg = imgUrl || microlinkImgSrc(p.url);
+      previewEl.innerHTML = `
+        <img src="${finalImg}"
+          alt="${p.name} portfolio preview"
+          style="width:100%;height:100%;object-fit:cover;display:block;"
+          onerror="this.parentElement.innerHTML='<div class=\'preview-fallback\'><div class=\'pf-initials\'>${initials}</div><div class=\'pf-label\'>Portfolio</div></div>'"/>
+        <div class="preview-overlay"></div>`;
     });
   });
 }
