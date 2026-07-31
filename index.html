@@ -178,16 +178,21 @@ const CLIENT_PILL_CLASS = {
 const ogCache = {};
 
 async function fetchOgImage(url) {
-  if (ogCache[url] !== undefined) return ogCache[url];
+  if (ogCache[url] !== undefined) {
+    console.log('[gallery] cache hit:', url, '->', ogCache[url]);
+    return ogCache[url];
+  }
   try {
-    const res = await fetch(
-      'https://eccul2test.tekii.org/ogimage?url=' + encodeURIComponent(url),
-      { signal: AbortSignal.timeout(8000) }
-    );
+    const apiUrl = 'https://eccul2test.tekii.org/ogimage?url=' + encodeURIComponent(url);
+    console.log('[gallery] fetching:', apiUrl);
+    const res = await fetch(apiUrl, { signal: AbortSignal.timeout(8000) });
+    console.log('[gallery] response status:', res.status);
     const data = await res.json();
+    console.log('[gallery] response data:', JSON.stringify(data));
     ogCache[url] = data.image || null;
     return ogCache[url];
-  } catch {
+  } catch(e) {
+    console.log('[gallery] ERROR for', url, ':', e.message);
     ogCache[url] = null;
     return null;
   }
