@@ -163,34 +163,20 @@ html,body{min-height:100%;background:var(--navy);color:var(--white);font-family:
 </div>
 
 <script>
+const SERVER = 'https://eccul2test.tekii.org';
 
-let portfolios = {};
+let portfolios = {};       // source of truth — keyed by id
 let filters = { client: 'all', country: 'all' };
+let pollTimer = null;
+
 const CLIENT_PILL_CLASS = {
   eccb: 'cp-eccb', scaspa: 'cp-scaspa', cub: 'cp-cub',
   ird: 'cp-ird', outsource: 'cp-outsource', irdanguilla: 'cp-irdanguilla'
 };
 
-// ── OG IMAGE VIA JSONLINK ─────────────────────────────────
+// ── THUMBNAIL ─────────────────────────────────────────────
 function getThumbUrl(url) {
-  // /ogimg proxies the Canva page server-side and streams the cover image bytes
-  // Works as a direct <img src> — no fetch, no CORS, no expiry issues
   return 'https://eccul2test.tekii.org/ogimg?url=' + encodeURIComponent(url);
-}
-
-// ── LOAD DATA ─────────────────────────────────────────────
-async function loadData() {
-  document.getElementById('result-meta').innerHTML =
-    'Loading… <button class="refresh-btn" onclick="loadData()">↺ Refresh</button>';
-  try {
-    const res = await fetch('https://eccul2test.tekii.org/portfolio');
-    if (!res.ok) throw new Error('fetch failed');
-    portfolios = await res.json();
-    if (typeof portfolios !== 'object' || Array.isArray(portfolios)) portfolios = {};
-  } catch {
-    portfolios = {};
-  }
-  renderGrid();
 }
 
 // ── FILTERS ───────────────────────────────────────────────
@@ -201,93 +187,237 @@ function setFilter(type, val, el) {
   renderGrid();
 }
 
-// ── RENDER ────────────────────────────────────────────────
+// ── FETCH DATA ────────────────────────────────────────────
+async function fetchPortfolios() {
+  try {
+    const res = await fetch(SERVER + '/portfolio', { cache: 'no-store' });
+    if (!res.ok) throw new Error('failed');
+    const fresh = await res.json();
+    if (typeof fresh !== 'object' || Array.isArray(fresh)) return;
+    return fresh;
+  } catch { return null; }
+}
+
+// ── INITIAL LOAD ──────────────────────────────────────────
+async function loadData() {
+  document.getElementById('result-meta').innerHTML =
+    'Loading… <button class="refresh-btn" onclick="manualRefresh()">↺ Refresh</button>';
+  const fresh = await fetchPortfolios();
+  if (fresh) portfolios = fresh;
+  renderGrid();
+  startPolling();
+}
+
+// ── MANUAL REFRESH ────────────────────────────────────────
+async function manualRefresh() {
+  const fresh = await fetchPortfolios();
+  if (!fresh) return;
+  const newIds = Object.keys(fresh).filter(id => !portfolios[id]);
+  portfolios = fresh;
+  if (newIds.length > 0) {
+    renderGrid();
+  } else {
+    updateMeta();
+  }
+}
+
+// ── SMART POLL — only adds new cards, never re-renders existing ones ──
+async function poll() {
+  const fresh = await fetchPortfolios();
+  if (!fresh) return;
+
+  // Find genuinely new entries not currently in portfolios
+  const newIds = Object.keys(fresh).filter(id => !portfolios[id]);
+
+  if (newIds.length === 0) return; // nothing changed — don't touch the DOM
+
+  // Merge new entries in
+  newIds.forEach(id => { portfolios[id] = fresh[id]; });
+
+  // Add only the new cards — don't touch existing ones
+  newIds.forEach(id => {
+    const p = portfolios[id];
+    // Check if this card should be visible under current filters
+    if (!cardMatchesFilters(p)) return;
+    addCard(id, p);
+  });
+
+  updateMeta();
+  showNewBanner(newIds.length);
+}
+
+function cardMatchesFilters(p) {
+  if (filters.client !== 'all') {
+    if (!(p.clients || [p.client]).includes(filters.client)) return false;
+  }
+  if (filters.country !== 'all') {
+    if (!p.country || !p.country.includes(filters.country)) return false;
+  }
+  return true;
+}
+
+// ── START / STOP POLLING ──────────────────────────────────
+function startPolling() {
+  if (pollTimer) clearInterval(pollTimer);
+  pollTimer = setInterval(poll, 10000); // every 10 seconds
+}
+
+// Stop polling when tab is hidden — resume when visible
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    clearInterval(pollTimer);
+  } else {
+    poll(); // immediate check on return
+    startPolling();
+  }
+});
+
+// ── RENDER FULL GRID ──────────────────────────────────────
 function renderGrid() {
   const grid = document.getElementById('grid');
-  const meta = document.getElementById('result-meta');
   grid.innerHTML = '';
 
-  let entries = Object.values(portfolios);
+  let entries = Object.entries(portfolios);
 
   if (filters.client !== 'all')
-    entries = entries.filter(p =>
-      (p.clients || [p.client]).includes(filters.client)
-    );
+    entries = entries.filter(([,p]) => (p.clients || [p.client]).includes(filters.client));
   if (filters.country !== 'all')
-    entries = entries.filter(p => p.country && p.country.includes(filters.country));
+    entries = entries.filter(([,p]) => p.country && p.country.includes(filters.country));
 
-  entries.sort((a,b) => {
+  entries.sort(([,a],[,b]) => {
     const lastA = a.name.trim().split(' ').pop();
     const lastB = b.name.trim().split(' ').pop();
     return lastA.localeCompare(lastB);
   });
 
-  const total = Object.values(portfolios).length;
-  meta.innerHTML = `Showing ${entries.length} of ${total} portfolio${total !== 1 ? 's' : ''}
-    <button class="refresh-btn" onclick="loadData()">↺ Refresh</button>`;
-
   if (!entries.length) {
-    grid.innerHTML = `
-      <div class="empty" style="grid-column:1/-1">
-        <div class="empty-icon">📂</div>
-        <div class="empty-title">No portfolios yet</div>
-        <div class="empty-body">
-          ${total === 0
-            ? 'No portfolios have been submitted yet.<br>Be the first!'
-            : 'No portfolios match this filter.<br>Try a different selection.'}
-        </div>
-      </div>`;
+    const total = Object.keys(portfolios).length;
+    grid.innerHTML =
+      '<div class="empty" style="grid-column:1/-1">' +
+      '<div class="empty-icon">📂</div>' +
+      '<div class="empty-title">No portfolios yet</div>' +
+      '<div class="empty-body">' +
+      (total === 0
+        ? 'No portfolios have been submitted yet.<br>Be the first!'
+        : 'No portfolios match this filter.<br>Try a different selection.') +
+      '</div></div>';
+    updateMeta();
     return;
   }
 
-  entries.forEach(p => {
-    const initials = p.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    const firstClient = (p.clients && p.clients[0]) || p.client;
-    const pillClass = CLIENT_PILL_CLASS[firstClient] || 'cp-eccb';
-
-    const card = document.createElement('a');
-    card.className = 'card';
-    card.href = p.url;
-    card.target = '_blank';
-    card.rel = 'noopener noreferrer';
-    card.innerHTML = `
-      <div class="preview"><div class="preview-fallback"><div class="pf-initials">${initials}</div><div class="pf-label">Loading…</div></div></div>
-      <div class="card-body">
-        <div class="card-name">${p.name}</div>
-        <div class="card-country">${p.country}</div>
-        <div class="card-pills">
-          ${(p.clientLabels || [p.clientLabel]).map((label, i) => {
-            const clientKey = (p.clients || [p.client])[i] || p.client;
-            const pc = CLIENT_PILL_CLASS[clientKey] || 'cp-eccb';
-            return `<span class="cpill ${pc}">${label}</span>`;
-          }).join('')}
-        </div>
-        <span class="view-btn">View Portfolio ↗</span>
-      </div>
-    `;
-    grid.appendChild(card);
-
-    const previewEl = card.querySelector('.preview');
-    const img = document.createElement('img');
-    const thumbSrc = getThumbUrl(p.url);
-    img.src = thumbSrc;
-    img.alt = p.name + ' portfolio preview';
-    img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
-    img.onload = function() {
-      // Clear the loading placeholder and show only the image
-      previewEl.innerHTML = '';
-      previewEl.appendChild(img);
-      const ov = document.createElement('div');
-      ov.className = 'preview-overlay';
-      previewEl.appendChild(ov);
-    };
-    img.onerror = function() {
-      previewEl.innerHTML = '<div class="preview-fallback"><div class="pf-initials">'
-        + initials + '</div><div class="pf-label">Portfolio</div></div>';
-    };
-    // img and overlay appended inside onload after clearing the placeholder
-  });
+  entries.forEach(([id, p]) => addCard(id, p));
+  updateMeta();
 }
+
+// ── ADD A SINGLE CARD ─────────────────────────────────────
+function addCard(id, p) {
+  // Don't add duplicates
+  if (document.getElementById('card-' + id)) return;
+
+  const grid = document.getElementById('grid');
+  const initials = p.name.trim().split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  const firstClient = (p.clients && p.clients[0]) || p.client;
+  const labels = p.clientLabels || [p.clientLabel];
+
+  const card = document.createElement('a');
+  card.className = 'card';
+  card.id = 'card-' + id;
+  card.href = p.url;
+  card.target = '_blank';
+  card.rel = 'noopener noreferrer';
+
+  const pillsHtml = (p.clientLabels || [p.clientLabel]).map((label, i) => {
+    const clientKey = (p.clients || [p.client])[i] || p.client;
+    const pc = CLIENT_PILL_CLASS[clientKey] || 'cp-eccb';
+    return '<span class="cpill ' + pc + '">' + label + '</span>';
+  }).join('');
+
+  card.innerHTML =
+    '<div class="preview" id="preview-' + id + '">' +
+      '<div class="preview-fallback">' +
+        '<div class="pf-initials">' + initials + '</div>' +
+        '<div class="pf-label">Loading…</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="card-body">' +
+      '<div class="card-name">' + p.name + '</div>' +
+      '<div class="card-country">' + p.country + '</div>' +
+      '<div class="card-pills">' + pillsHtml + '</div>' +
+      '<span class="view-btn">View Portfolio ↗</span>' +
+    '</div>';
+
+  // Insert in last-name sorted position
+  const cards = Array.from(grid.querySelectorAll('.card'));
+  const lastName = p.name.trim().split(' ').pop();
+  const insertBefore = cards.find(c => {
+    const cName = c.querySelector('.card-name');
+    if (!cName) return false;
+    return cName.textContent.trim().split(' ').pop().localeCompare(lastName) > 0;
+  });
+
+  if (insertBefore) {
+    grid.insertBefore(card, insertBefore);
+  } else {
+    grid.appendChild(card);
+  }
+
+  // Load thumbnail
+  const previewEl = card.querySelector('.preview');
+  const img = document.createElement('img');
+  img.src = getThumbUrl(p.url);
+  img.alt = p.name + ' portfolio preview';
+  img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+  img.onload = function() {
+    previewEl.innerHTML = '';
+    previewEl.appendChild(img);
+    const ov = document.createElement('div');
+    ov.className = 'preview-overlay';
+    previewEl.appendChild(ov);
+  };
+  img.onerror = function() {
+    previewEl.innerHTML =
+      '<div class="preview-fallback">' +
+        '<div class="pf-initials">' + initials + '</div>' +
+        '<div class="pf-label">Portfolio</div>' +
+      '</div>';
+  };
+}
+
+// ── UPDATE META LINE ──────────────────────────────────────
+function updateMeta() {
+  let visible = Object.values(portfolios).filter(p => cardMatchesFilters(p)).length;
+  const total  = Object.keys(portfolios).length;
+  document.getElementById('result-meta').innerHTML =
+    'Showing ' + visible + ' of ' + total + ' portfolio' + (total !== 1 ? 's' : '') +
+    ' <span style="font-size:9px;color:var(--gray);margin-left:6px">· auto-refreshes every 10s</span>' +
+    ' <button class="refresh-btn" onclick="manualRefresh()">↺ Refresh</button>';
+}
+
+// ── NEW SUBMISSION BANNER ─────────────────────────────────
+function showNewBanner(count) {
+  const existing = document.getElementById('new-submission-toast');
+  if (existing) existing.remove();
+  const toast = document.createElement('div');
+  toast.id = 'new-submission-toast';
+  toast.style.cssText =
+    'position:fixed;bottom:28px;left:50%;transform:translateX(-50%);' +
+    'background:rgba(0,201,177,.15);border:1px solid rgba(0,201,177,.4);' +
+    'border-radius:8px;padding:10px 20px;color:var(--teal);' +
+    'font-family:var(--fm);font-size:11px;letter-spacing:1px;' +
+    'z-index:500;animation:fadeInUp .3s ease;';
+  toast.textContent = count === 1
+    ? '🎉 New portfolio just arrived!'
+    : '🎉 ' + count + ' new portfolios just arrived!';
+  document.body.appendChild(toast);
+  setTimeout(() => { if (toast.parentNode) toast.remove(); }, 4000);
+}
+
+// ── CSS FOR TOAST ANIMATION ───────────────────────────────
+const style = document.createElement('style');
+style.textContent =
+  '@keyframes fadeInUp{from{opacity:0;transform:translateX(-50%) translateY(10px)}' +
+  'to{opacity:1;transform:translateX(-50%) translateY(0)}}';
+document.head.appendChild(style);
 
 // ── INIT ─────────────────────────────────────────────────
 const params = new URLSearchParams(window.location.search);
@@ -297,7 +427,6 @@ if (params.get('submitted') === '1') {
   window.history.replaceState({}, '', window.location.pathname);
 }
 loadData();
-// No auto-polling — use the manual refresh button
 </script>
 </body>
 </html>
